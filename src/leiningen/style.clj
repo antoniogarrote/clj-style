@@ -3,7 +3,6 @@
             [leiningen.core.main :as main]
             [leiningen.check :refer [check]]
             [leiningen.eastwood :refer [eastwood]]
-            [leiningen.bikeshed :refer [bikeshed]]
             [leiningen.style.check :as c]
             [leiningen.style.fix :as f]
             [leiningen.style.errors :as errors]

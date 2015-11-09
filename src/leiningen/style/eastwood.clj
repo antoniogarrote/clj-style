@@ -5,9 +5,6 @@
 
 (def warnings (atom []))
 
-(defn end-of-parsing [message]
-  (re-find #"Warnings: \d" (:msg message)))
-
 (defn warning->error [{:keys [msg file column line linter]}]
   (make-error file :eastwood linter (colorize msg :red)))
 
@@ -24,9 +21,6 @@
                              :lint-warning (do
                                              (print-progress false)
                                              (swap! warnings conj (warning->error (:warn-data message))))
-                             :note (do
-                                     (print-progress true)
-                                     (when (end-of-parsing message)
-                                       (do (deliver results @warnings))))
+                             :note (print-progress true)
                              identity))})
-    @results))
+    @warnings))
