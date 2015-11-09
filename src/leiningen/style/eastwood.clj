@@ -13,14 +13,15 @@
                              (:source-paths project)
                              (:test-paths project)))
         results (promise)]
-    (eastwood {;:dirs paths
-               :source-paths (:source-paths project)
-               :test-paths (:test-paths project)
-               :callback (fn [message]
-                           (condp = (:kind message)
-                             :lint-warning (do
-                                             (print-progress false)
-                                             (swap! warnings conj (warning->error (:warn-data message))))
-                             :note (print-progress true)
-                             identity))})
+    (try (eastwood {;:dirs paths
+                    :source-paths (:source-paths project)
+                    :test-paths (:test-paths project)
+                    :callback (fn [message]
+                                (condp = (:kind message)
+                                  :lint-warning (do
+                                                  (print-progress false)
+                                                  (swap! warnings conj (warning->error (:warn-data message))))
+                                  :note (print-progress true)
+                                  identity))})
+         (catch Exception ex (print (colorize "!" :red))))
     @warnings))
