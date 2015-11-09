@@ -4,31 +4,32 @@ Front-end for different static analyzers tools for Clojure.
 
 Goals:
 
-- Support for different tools
-- Commong error format
-- Correct interaction witht the shell
+- Support for different libraries
+- Common error format
+- Correct interaction with the shell
 
 ## Usage
 
-Run all the checks
+Run all the checks:
 
 ```bash
 $ lein check
 ```
 
-Run a check for a particular library
+Run a check for a particular library:
 
 ```bash
 $ lein check kibit
 ```
 
-Fix errors automatically
+Fix errors automatically:
 
 ```bash
 $ lein fix
 ```
 
-Fix errors using a particular library
+Fix errors using a particular library:
+
 ```bash
 $ lein fix cljfmt
 ```
