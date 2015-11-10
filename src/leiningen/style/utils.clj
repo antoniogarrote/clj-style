@@ -16,3 +16,14 @@
 
 (defn print-progress
   ([status] (print (colorize "." (if status :green :red))) (flush)))
+
+(defmacro with-muted-output
+  "Evaluates exprs in a context in which *out* and *err* ire bound to a fresh
+  StringWriter.  Returns the string created by any nested printing
+  calls."
+  {:added "1.0"}
+  [& body]
+  `(let [s# (new java.io.StringWriter)]
+     (binding [*out* s# *err* s#]
+       (let [res# (do ~@body)]
+         res#))))

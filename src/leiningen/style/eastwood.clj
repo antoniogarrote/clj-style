@@ -29,5 +29,5 @@
                                                   (swap! warnings conj (error->error message)))
                                   :note (print-progress true)
                                   identity))})
-         (catch Exception ex (println ex) (print (colorize "!" :red))))
+         (catch Exception ex (print (colorize "!" :red))))
     @warnings))
