@@ -1,7 +1,6 @@
 (ns leiningen.style.cloverage
-  (:use [cloverage source instrument debug report dependency])
-  (:require [cloverage.coverage :as cloverage]
-            [cloverage.report :as report]
+  (:require [leiningen.core.eval :as leval]
+            [leiningen.core.project :as lproject]
             [bultitude.core :as blt]
             [leiningen.style.errors :refer [make-error]]
             [leiningen.style.utils :refer [colorize with-muted-output]]
@@ -12,49 +11,41 @@
 
 (defn run
   "Produce test coverage report for some namespaces"
-  [& args]
-  (let [[opts add-nses help] (cloverage/parse-args args)
-        add-test-nses (:extra-test-ns opts)
-        ns-regexs     (map re-pattern (:ns-regex opts))
-        test-regexs   (map re-pattern (:test-ns-regex opts))
-        exclude-regex (map re-pattern (:ns-exclude-regex opts))
-        ns-path       (:src-ns-path opts)
-        test-ns-path  (:test-ns-path opts)
-        namespaces    (set/difference
-                       (into #{}
-                             (concat add-nses
-                                     (cloverage/find-nses ns-path ns-regexs)))
-                       (into #{} (cloverage/find-nses ns-path exclude-regex)))
-        test-nses     (concat add-test-nses (cloverage/find-nses test-ns-path test-regexs))]
-    (binding [*ns*      (find-ns 'cloverage.coverage)
-              *debug*   false]
-      (doseq [namespace (in-dependency-order (map symbol namespaces))]
-        (binding [cloverage/*instrumented-ns* namespace]
-          (instrument #'cloverage/track-coverage namespace))
-        (cloverage/mark-loaded namespace))
-      (let [test-result (when-not (empty? test-nses)
-                          (let [test-syms (map symbol test-nses)]
-                            (apply require (map symbol test-nses))
-                            (apply clojure.test/run-tests (map symbol test-nses))))
-            ;; sum up errors as in lein test
-            errors      (when test-result
-                          (reduce + ((juxt :error :fail) test-result)))
-            exit-code   (cond
-                          (not test-result) -1
-                          (> errors 128)    -2
-                          :else             errors)]
-        (let [results (gather-stats (deref cloverage/*covered*))]
-          (shutdown-agents)
-          (report/total-stats results))))))
+  [project source-namespaces test-namespaces]
+  (let [project  (lproject/merge-profiles project [{:dependencies [['cloverage "1.0.6"]]}])
+        project (assoc project :eval-in :classloader)]
+    (leval/eval-in-project
+     project
+     `(let [namespaces#  (quote ~source-namespaces) ;(clojure.set/difference (into #{} ~source-namespaces))
+            test-nses# (quote ~test-namespaces)]
+        (binding [*ns* (find-ns 'cloverage.coverage)
+                  cloverage.debug/*debug* false]
+          (doseq [namespace# (cloverage.dependency/in-dependency-order (map symbol namespaces#))]
+            (binding [cloverage.coverage/*instrumented-ns* namespace#]
+              (try
+                (cloverage.instrument/instrument (var cloverage.coverage/track-coverage) namespace#)
+                (catch Throwable ex#)))
+            (cloverage.coverage/mark-loaded namespace#))
+          (do (when-not (empty? test-nses#)
+                (let [test-syms# (map symbol test-nses#)]
+                  (try
+                    (apply require (map symbol test-nses#))
+                    (apply clojure.test/run-tests (map symbol test-nses#))
+                    (catch Throwable ex#))))
+              (let [results# (cloverage.report/gather-stats (deref cloverage.coverage/*covered*))]
+                (cloverage.report/total-stats results#)))))
+     '(do (require 'cloverage.coverage)
+          (require 'cloverage.instrument)
+          (require 'cloverage.dependency)
+          (require 'cloverage.report)
+          (require 'cloverage.debug)
+          (require 'clojure.test)))))
 
 (defn check [project & args]
   (try (let [min-coverage (get-in project [:clj-style :min-coverage])
              source-namespaces (ns-names-for-dirs (:source-paths project))
-             test-namespace    (ns-names-for-dirs (:test-paths project))
-             args (concat (mapcat  #(list "-x" %) test-namespace)
-                          args
-                          source-namespaces)]
-         (let [results (with-muted-output (apply run args))
+             test-namespaces    (ns-names-for-dirs (:test-paths project))]
+         (let [results (with-muted-output (run project source-namespaces test-namespaces))
                min-coverage (or min-coverage 90)
                percent-covered (:percent-lines-covered results)]
            (if (< percent-covered min-coverage)
@@ -63,4 +54,4 @@
                           "test coverage"
                           (str "Total line coverage (" (colorize (str percent-covered "%") :red) ") not reaching minimum of " min-coverage "%"))]
              [])))
-       (catch Exception ex (do (print (colorize "!" :red))[]))))
+       (catch Exception ex (println ex) (.printStackTrace ex) (do (print (colorize "!" :red))[]))))

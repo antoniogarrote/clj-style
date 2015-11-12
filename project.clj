@@ -9,6 +9,5 @@
                  [jonase/eastwood "0.2.1"]
                  [lein-cljfmt "0.3.0"]
                  [cloverage "1.0.6"]]
-  :plugins [[lein-cloverage "1.0.6"]]
   :profiles {:dev {:clj-style {:min-coverage 20}}}
   :eval-in-leiningen true)
