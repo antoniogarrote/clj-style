@@ -12,8 +12,7 @@
 (defn run
   "Produce test coverage report for some namespaces"
   [project source-namespaces test-namespaces]
-  (let [project  (lproject/merge-profiles project [{:dependencies [['cloverage "1.0.6"]]}])
-        project (assoc project :eval-in :classloader)]
+  (let [project  (lproject/merge-profiles project [{:dependencies [['cloverage "1.0.6"]]}])]
     (leval/eval-in-project
      project
      `(let [namespaces#  (quote ~source-namespaces) ;(clojure.set/difference (into #{} ~source-namespaces))
@@ -33,7 +32,9 @@
                     (apply clojure.test/run-tests (map symbol test-nses#))
                     (catch Throwable ex#))))
               (let [results# (cloverage.report/gather-stats (deref cloverage.coverage/*covered*))]
-                (cloverage.report/total-stats results#)))))
+                (println (cloverage.report/total-stats results#))
+                (shutdown-agents)
+                (System/exit 0)))))
      '(do (require 'cloverage.coverage)
           (require 'cloverage.instrument)
           (require 'cloverage.dependency)
@@ -45,7 +46,8 @@
   (try (let [min-coverage (get-in project [:clj-style :min-coverage])
              source-namespaces (ns-names-for-dirs (:source-paths project))
              test-namespaces    (ns-names-for-dirs (:test-paths project))]
-         (let [results (with-muted-output (run project source-namespaces test-namespaces))
+         (let [results (with-out-str (run project source-namespaces test-namespaces))
+               results (read-string (clojure.string/trim (str "{" (last (clojure.string/split results #"\{")))))
                min-coverage (or min-coverage 90)
                percent-covered (:percent-lines-covered results)]
            (if (< percent-covered min-coverage)
