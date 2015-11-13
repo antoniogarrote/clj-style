@@ -3,14 +3,13 @@
             [clojure.string :as string]
             [leiningen.core.main :as main]
             [leiningen.style.errors :refer [make-error]]
-            [leiningen.core.eval :refer [eval-in-project]]
             [clojure.tools.namespace.find :refer [find-namespaces]]
             [kibit.rules :refer [all-rules]]
             [kibit.check :refer [check-file]]
             [kibit.driver :refer [find-clojure-sources-in-dir]]
             [leiningen.cljfmt.diff :as diff]
             [clojure.pprint :as pp]
-            [leiningen.style.utils :refer [colorize print-progress]])
+            [leiningen.style.printing :refer [colorize print-progress]])
   (:import [java.io File]
            [difflib DiffUtils Delta$TYPE]
            [java.io StringWriter]))

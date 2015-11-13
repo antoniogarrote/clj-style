@@ -2,8 +2,10 @@
   (:require [leiningen.core.eval :as leval]
             [leiningen.core.project :as lproject]
             [bultitude.core :as blt]
+            [leiningen.core.eval :refer [eval-in-project]]
             [leiningen.style.errors :refer [make-error]]
-            [leiningen.style.utils :refer [colorize with-muted-output]]
+            [leiningen.style.utils :refer [with-muted-output]]
+            [leiningen.style.printing :refer [colorize]]
             [clojure.set :as set]))
 
 (defn ns-names-for-dirs [dirs]
@@ -56,4 +58,4 @@
                           "test coverage"
                           (str "Total line coverage (" (colorize (str percent-covered "%") :red) ") not reaching minimum of " min-coverage "%"))]
              [])))
-       (catch Exception ex (println ex) (.printStackTrace ex) (do (print (colorize "!" :red))[]))))
+       (catch Exception ex (do (println ex) (print (colorize "!" :red))[]))))

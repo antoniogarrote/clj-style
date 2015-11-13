@@ -2,7 +2,7 @@
   (:require [leiningen.core.main :as main]
             [leiningen.style.errors :refer [make-error]]
             [leiningen.cljfmt :as cljfmt]
-            [leiningen.style.utils :refer [print-progress]]))
+            [leiningen.style.printing :refer [print-progress]]))
 
 (defn check
   ([project]
