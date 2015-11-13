@@ -1,5 +1,7 @@
 # clj-style
 
+![dijkstra](http://lemonodor.com/images/dijkstra-quick-n-dirty-s.jpg)
+
 Front-end for different static analyzers tools for Clojure.
 
 Goals:
