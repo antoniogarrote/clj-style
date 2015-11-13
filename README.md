@@ -47,7 +47,7 @@ $ lein style coverage
 To change the default minimum coverage, you can change the :min-coverage key in your profile:
 
 ```clojure
-:profiles {:dev {:clj-style {:min-coverage 80}}}
+:clj-style {:min-coverage 80}
 ```
 
 The default min-coverage value is 90%.
