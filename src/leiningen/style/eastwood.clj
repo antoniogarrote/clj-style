@@ -5,11 +5,11 @@
             [leiningen.style.errors :refer [make-error]]
             [leiningen.style.printing :refer [colorize]]))
 
-(defn warning->error [{:keys [msg file column line linter]}]
-                 (make-error file :eastwood linter (colorize msg :red)))
+(defn warning->error [{:keys [msg column line linter uri-or-filename file uri]}]
+  (make-error (str (or file uri-or-filename uri) " line" line " column " column) :eastwood linter (colorize msg :red)))
 
 (defn error->error [{:keys [msg opt]}]
-               (make-error (-> opt :cwd (str)) :eastwood :error (colorize msg :red)))
+  (make-error (-> opt :cwd (str)) :eastwood :error (colorize msg :red)))
 
 (defn check [project & args]
   (let [paths (filter some? (concat
@@ -35,19 +35,15 @@
                                                   :callback (fn [message#]
                                                               (condp = (:kind message#)
                                                                 :lint-warning (do
-                                                                                (print (colorize# "C" :red))
-                                                                                (swap! warnings# conj {:kind :error
-                                                                                                       :data (:warn-data message#)}))
-                                                                :error        (do
-                                                                                (print (colorize# "W" :red))
+                                                                                (print (colorize# "." :red))
                                                                                 (swap! warnings# conj {:kind :warning
-                                                                                                       :data message#}))
+                                                                                                       :data (:warn-data message#)}))
                                                                 :note (print (colorize# "." :green))
                                                                 identity))})
                          (deref warnings#))
                        '(require 'eastwood.lint))
-                      (catch Exception ex (println ex) (print (colorize "!" :red)) []))]
+                      (catch Exception ex (print (colorize "!" :red)) []))]
     (map (fn [{:keys [kind data]}] (condp = kind
-                                     :error (error->error data)
-                                     :warning (warning->error data)))
+                                     :warning (warning->error data)
+                                     :error (error->error data)))
          warnings)))
