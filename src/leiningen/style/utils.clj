@@ -12,7 +12,7 @@
   (str \u001b (ansi-colors color) s \u001b (ansi-colors :reset)))
 
 (defn print-help []
-  (main/abort "USAGE: lein style [COMMAND] LIBRARY\n\n - COMMAND: [check | fix | help] default: help\n - LIBRARY: [cljfmt | kibit | eastwood | all] default: all\n"))
+  (main/abort "USAGE: lein style [COMMAND] LIBRARY\n\n - COMMAND: [check | fix | coverage | help] default: help\n - LIBRARY: [cljfmt | kibit | eastwood | cloverage | all] default: all\n"))
 
 (defn print-progress
   ([status] (print (colorize "." (if status :green :red))) (flush)))

@@ -6,7 +6,8 @@
             [leiningen.style.check :as c]
             [leiningen.style.fix :as f]
             [leiningen.style.errors :as errors]
-            [leiningen.style.utils :refer [colorize print-help]]))
+            [leiningen.style.utils :refer [colorize print-help]]
+            [leiningen.cloverage :as cloverage]))
 
 (defn process-results [errors]
   (println "\n")
@@ -22,13 +23,20 @@
     (do (doseq [fix fixes] (errors/apply-fix fix))
         (main/info (colorize (str "\n-------\n" (count fixes) " errors(s) fixed") :green)))))
 
+(defn run-coverage [project]
+  (cloverage/cloverage project))
+
 (defn style
   "Run multiple style checks on a Clojure project"
   ([project] (print-help))
-  ([project command] (style project command :all))
+  ([project command]
+   (if (= (keyword command) :coverage)
+     (run-coverage project)
+     (style project command :all)))
   ([project command library & args]
    (condp = (keyword command)
      :check (process-results
              (c/check project (keyword library) args))
      :fix   (process-fixes (f/fix project (keyword library) args))
+     :coverage (run-coverage project)
      (print-help))))

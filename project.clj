@@ -1,4 +1,4 @@
-(defproject clj-style "0.1.1-SNAPSHOT"
+(defproject clj-style "0.1.2-SNAPSHOT"
   :description "Front-end for different Clojure static analyzers"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -8,6 +8,7 @@
                  [jonase/kibit "0.1.2"]
                  [jonase/eastwood "0.2.1"]
                  [lein-cljfmt "0.3.0"]
-                 [cloverage "1.0.6"]]
+                 [cloverage "1.0.6"]
+                 [lein-cloverage "1.0.6"]]
   :profiles {:dev {:clj-style {:min-coverage 20}}}
   :eval-in-leiningen true)
